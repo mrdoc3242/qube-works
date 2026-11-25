@@ -63,3 +63,30 @@
     lb.addEventListener('touchend',function(e){ if(sx===null)return; var dx=e.changedTouches[0].clientX-sx; if(Math.abs(dx)>50) show(cur+(dx<0?1:-1)); sx=null; });
   }
 })();
+
+// contact form (FormSubmit AJAX)
+(function(){
+  var form=document.querySelector('.contact-form'); if(!form) return;
+  var status=form.querySelector('.f-status'), btn=form.querySelector('button[type=submit]'), label=btn.innerHTML;
+  form.addEventListener('submit',function(e){
+    e.preventDefault(); status.className='f-status'; status.textContent='';
+    var bad=false;
+    form.querySelectorAll('[required]').forEach(function(el){
+      var ok=el.value.trim()!=='' && (el.type!=='email' || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(el.value.trim()));
+      el.classList.toggle('is-invalid',!ok); if(!ok) bad=true;
+    });
+    if(bad) return;
+    if(form.elements['_honey'].value) return;
+    var endpoint=form.dataset.endpoint;
+    if(!endpoint){ status.classList.add('err'); status.textContent=status.dataset.off; return; }
+    var E=form.elements; var data={name:E['name'].value,email:E['email'].value,phone:E['phone'].value,project_type:E['project_type'].value,message:E['message'].value,
+      language:form.dataset.lang,_subject:form.dataset.subject,_replyto:E['email'].value,_template:'table',_captcha:'false'};
+    btn.disabled=true; btn.textContent=btn.dataset.sending;
+    fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(data)})
+      .then(function(r){return r.json().catch(function(){return {}}).then(function(j){ if(!r.ok || j.success==='false' || j.success===false) throw new Error(j.message||r.status); });})
+      .then(function(){ form.reset(); status.classList.add('ok'); status.textContent=status.dataset.ok; })
+      .catch(function(){ status.classList.add('err'); status.textContent=status.dataset.err; })
+      .then(function(){ btn.disabled=false; btn.innerHTML=label; });
+  });
+  form.querySelectorAll('input,textarea').forEach(function(el){ el.addEventListener('input',function(){ el.classList.remove('is-invalid'); }); });
+})();
