@@ -202,3 +202,6 @@ svg{width:1em;height:1em}
   .hero-dots button{width:22px}
   .card-meta{flex-direction:column;gap:2px}
 }
+.g-item.g-half{grid-column:span 1;aspect-ratio:3/2}
+@media (max-width:760px){.g-item.g-half{grid-column:auto}}
+img{image-rendering:auto}

@@ -15,6 +15,9 @@ const projects = manifest.map(p => {
 });
 const ext = projects.filter(p => p.cat === 'exterior'), int = projects.filter(p => p.cat === 'interior');
 const catLabel = c => c === 'exterior' ? 'Architecture' : 'Interior';
+const srcset = (p, n, b = '') => { const im = p.images.find(i => i.n === n) || { w: 2000, h: 2000 }; const sc = m => Math.round(im.w * Math.min(1, m / Math.max(im.w, im.h)));
+  const ws = [[ '-s', sc(800)], ['-m', sc(1400)], ['', im.w]]; const seen = new Set();
+  return ws.filter(([, w]) => !seen.has(w) && seen.add(w)).map(([suf, w]) => `${b}${p.img(n + suf + '.webp')} ${w}w`).join(', '); };
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 const logo = `<svg class="logo-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 21 7v10l-9 5-9-5V7z M3 7l9 5 9-5 M12 12v10" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>`;
@@ -68,15 +71,15 @@ ${body}
 
 function card(p, base = '', size = '') {
   return `<a class="card ${size}" href="${base}${p.page}" data-cat="${p.cat}">
-    <div class="card-img"><img src="${base}${p.img(p.cover + '-s.webp')}" alt="${esc(p.name)}" loading="lazy"></div>
+    <div class="card-img"><img src="${base}${p.img(p.cover + '-m.webp')}" srcset="${srcset(p, p.cover, base)}" sizes="${size ? '(max-width:760px) 100vw, 66vw' : '(max-width:760px) 100vw, (max-width:1000px) 50vw, 33vw'}" alt="${esc(p.name)}" loading="lazy"></div>
     <div class="card-meta"><h3>${esc(p.name)}</h3><span>${catLabel(p.cat)} · ${esc(p.location || '')}</span></div>
   </a>`;
 }
 
 // ---------- Home ----------
 const heroSlides = [
-  ['exterior/solos-villas', '05'], ['exterior/xenofontos-nova', '02'], ['interior/xenofontos-duo', '09'], ['exterior/xenofontos-duo', '06']
-].map(([k, n]) => projects.find(p => p.key === k)).map((p, i) => ({ p, n: [ '05', '02', '09', '06'][i] }));
+  ['exterior/xenofontos-nova', '02'], ['exterior/psilogenis', '03'], ['interior/xenofontos-nova', '07'], ['interior/nasser-apart', '05']
+].map(([k, n]) => projects.find(p => p.key === k)).map((p, i) => ({ p, n: [ '02', '03', '07', '05'][i] }));
 
 const featured = ['exterior/solos-villas', 'interior/kallithea-apart', 'exterior/olo', 'interior/triangle-apart', 'exterior/xenofontos-nova', 'interior/xenofontos-duo']
   .map(k => projects.find(p => p.key === k));
@@ -118,11 +121,11 @@ const home = layout({
 </section>
 
 <section class="services wrap" id="services">
-  <a class="service reveal" href="projects.html#exterior" style="background-image:url('${projects.find(p => p.key === 'exterior/xenofontos-duo').img('03-s.webp')}')">
+  <a class="service reveal" href="projects.html#exterior" style="background-image:url('${projects.find(p => p.key === 'exterior/xenofontos-duo').img('03-m.webp')}')">
     <div><span class="eyebrow">01</span><h3>Architectural<br>design</h3><p>Concept, facades and 3D visualisation for residential buildings and villas.</p></div>
     <span class="round">${arrow}</span>
   </a>
-  <a class="service reveal" href="projects.html#interior" style="background-image:url('${projects.find(p => p.key === 'interior/triangle-apart').img('14-s.webp')}')">
+  <a class="service reveal" href="projects.html#interior" style="background-image:url('${projects.find(p => p.key === 'interior/triangle-apart').img('14-m.webp')}')">
     <div><span class="eyebrow">02</span><h3>Interior<br>design</h3><p>Layouts, materials, lighting and furniture for apartments and private homes.</p></div>
     <span class="round">${arrow}</span>
   </a>
@@ -214,7 +217,7 @@ ordered.forEach((p, idx) => {
 ${p.video ? `<section class="wrap project-video reveal"><video src="${b}${p.video}" controls playsinline muted preload="metadata" poster="${b}${p.img(p.cover + '.webp')}"></video></section>` : ''}
 <section class="wrap">
   <div class="gallery">
-    ${imgs.map(im => `<a class="g-item${im.w > im.h * 1.2 ? '' : ' g-tall'}" href="${b}${p.img(im.n + '.webp')}" data-lightbox><img src="${b}${p.img(im.n + '-s.webp')}" width="${im.w}" height="${im.h}" alt="${esc(p.name)} — image ${+im.n}" loading="lazy"></a>`).join('\n    ')}
+    ${imgs.map(im => `<a class="g-item${im.w > im.h * 1.2 && im.w >= 1800 ? '' : (im.w > im.h * 1.2 ? ' g-half' : ' g-tall')}" href="${b}${p.img(im.n + '.webp')}" data-lightbox><img src="${b}${p.img(im.n + '-m.webp')}" srcset="${srcset(p, im.n, b)}" sizes="${im.w > im.h * 1.2 && im.w >= 1800 ? '100vw' : '(max-width:760px) 100vw, 50vw'}" width="${im.w}" height="${im.h}" alt="${esc(p.name)} — image ${+im.n}" loading="lazy"></a>`).join('\n    ')}
   </div>
 </section>
 <section class="next-project wrap">
